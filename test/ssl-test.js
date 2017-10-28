@@ -29,7 +29,7 @@ test.sslOptions = {
 describe('SOAP Client(SSL)', function() {
   before(function(done) {
     fs.readFile(__dirname + '/wsdl/strict/stockquote.wsdl', 'utf8', function(err, data) {
-      assert.ok(!err);
+      assert.ifError(err);
       test.wsdl = data;
       done();
     });
@@ -43,6 +43,11 @@ describe('SOAP Client(SSL)', function() {
       test.soapServer = soap.listen(test.server, '/stockquote', test.service, test.wsdl);
       test.baseUrl =
         'https://' + test.server.address().address + ':' + test.server.address().port;
+      
+      if (test.server.address().address === '0.0.0.0' || test.server.address().address === '::') {
+        test.baseUrl =
+          'https://127.0.0.1:' + test.server.address().port;
+      }
       done();
     });
   });
@@ -58,7 +63,7 @@ describe('SOAP Client(SSL)', function() {
 
   it('should connect to an SSL server', function(done) {
     soap.createClient(__dirname + '/wsdl/strict/stockquote.wsdl', function(err, client) {
-      assert.ok(!err);
+      assert.ifError(err);
       client.setEndpoint(test.baseUrl + '/stockquote');
       client.setSecurity({
         addOptions:function(options){
@@ -73,7 +78,7 @@ describe('SOAP Client(SSL)', function() {
       });
 
       client.GetLastTradePrice({ tickerSymbol: 'AAPL'}, function(err, result) {
-        assert.ok(!err);
+        assert.ifError(err);
         assert.equal(19.56, parseFloat(result.price));
         done();
       });
